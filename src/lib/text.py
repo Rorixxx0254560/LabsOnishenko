@@ -15,7 +15,7 @@ def normalize(text: str, *, casefold: bool = True, yo2e: bool = True) -> str:
 
 #превращение строки в кортеж
 def tokenize(text: str) -> list[str]:
-    return re.findall("[\w-]+", text)
+    return re.findall(r"[\w-]+", text)
 
 #
 def count_freq(tokens: list[str]) -> dict[str, int]:
@@ -29,7 +29,7 @@ def count_freq(tokens: list[str]) -> dict[str, int]:
 
     return result
 
-def top_n(freq: dict[str, int], n: int = 5) -> list[tuple[str, int]]:
+def top_n(freq: dict[str, int], n: int = 2) -> list[tuple[str, int]]:
     result = []
     for key in freq:
         value = freq[key]

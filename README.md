@@ -1,3 +1,186 @@
+# Лабораторная работа 6
+## задание A cli_text
+```python
+import argparse
+import sys
+
+sys.path.append(r'C:\Users\Lucia\PycharmProjects\LabsOnishenko\src')
+
+from lib.text import normalize, tokenize, count_freq,  top_n
+
+def read_text_file(file_path):
+    try:
+        with open(file_path, "r", encoding="utf-8") as f:
+            return f.read()
+    except FileNotFoundError:
+        print(f"Ошибка: Файл {file_path} не найден")
+        sys.exit(1)
+    except Exception as e:
+        print(f"Ошибка при чтении файла: {e}")
+        sys.exit(1)
+
+def cat_command(args):
+    try:
+        with open(args.input, "r", encoding="utf-8") as f:
+            for line_num, line in enumerate(f, 1):
+                if args.n:
+                    print(f"{line_num:6} {line}", end="")
+                else:
+                    print(line, end="")
+    except FileNotFoundError:
+        print(f"Ошибка: Файл {args.input} не найден")
+        sys.exit(1)
+    except Exception as e:
+        print(f"Ошибка при чтении файла: {e}")
+        sys.exit(1)
+
+
+def stats_command(args):
+    text = read_text_file(args.input)
+    normalize_text = normalize(text)
+    tokens = tokenize(normalize_text)
+    frequencies = count_freq(tokens)
+    top_5 = top_n(frequencies, args.top)
+
+    print("Топ-5:")
+
+    for item in top_5:
+        print(f"{item[0]}: {item[1]}")
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="CLI-утилиты для работы с текстом"
+    )
+    subparsers = parser.add_subparsers(dest="command", help="Доступные команды")
+
+    cat_parser = subparsers.add_parser("cat", help="Вывести содержимое файла")
+    cat_parser.add_argument("--input", required=True, help="Путь к входному файлу")
+    cat_parser.add_argument("-n", action="store_true", help="Нумеровать строки")
+
+    stats_parser = subparsers.add_parser("stats", help="Анализ частот слов")
+    stats_parser.add_argument("--input", required=True, help="Путь к текстовому файлу")
+    stats_parser.add_argument("--top", type=int, default=5, help="Количество топ-слов (по умолчанию: 5)")
+
+    args = parser.parse_args()
+
+
+    if args.command == "cat":
+        cat_command(args)
+    elif args.command == "stats":
+        stats_command(args)
+    else:
+        parser.print_help()
+
+
+if __name__ == "__main__":
+    main()
+```
+![](images/lab06/vvod1.png "")
+![](images/lab06/vivod1.png "")
+![](images/lab06/vivod2.png "")
+![](images/lab06/vivod3.png "")
+## задание В cli_convert
+```python
+import argparse
+import sys
+
+sys.path.append(r'C:\Users\Lucia\PycharmProjects\LabsOnishenko\src')
+
+from lib.convertor import csv_to_json, csv_to_xlsx, json_to_csv
+
+
+def json2csv_command(args):
+    try:
+        json_to_csv(args.infile, args.out)
+        print(f"Успешно конвертировано: {args.infile} -> {args.out}")
+    except Exception as e:
+        print(f"Ошибка при конвертации JSON в CSV: {e}")
+        sys.exit(1)
+
+
+def csv2json_command(args):
+    try:
+        csv_to_json(args.infile, args.out)
+        print(f"Успешно конвертировано: {args.infile} -> {args.out}")
+    except Exception as e:
+        print(f"Ошибка при конвертации CSV в JSON: {e}")
+        sys.exit(1)
+
+
+def csv2xlsx_command(args):
+    try:
+        csv_to_xlsx(args.infile, args.out)
+        print(f"Успешно конвертировано: {args.infile} -> {args.out}")
+    except Exception as e:
+        print(f"Ошибка при конвертации CSV в XLSX: {e}")
+        sys.exit(1)
+
+
+def main():
+    parser = argparse.ArgumentParser(description="Конвертер между форматами данных")
+
+    subparsers = parser.add_subparsers(dest="command", help="Доступные команды")
+
+    json2csv_parser = subparsers.add_parser("json2csv", help="Конвертация JSON в CSV")
+    json2csv_parser.add_argument(
+        "--input", dest="infile", required=True, help="Входной JSON файл"
+    )
+    json2csv_parser.add_argument("--out", required=True, help="Выходной CSV файл")
+
+    csv2json_parser = subparsers.add_parser("csv2json", help="Конвертация CSV в JSON")
+    csv2json_parser.add_argument(
+        "--input", dest="infile", required=True, help="Входной CSV файл"
+    )
+    csv2json_parser.add_argument("--out", required=True, help="Выходной JSON файл")
+
+    csv2xlsx_parser = subparsers.add_parser("csv2xlsx", help="Конвертация CSV в XLSX")
+    csv2xlsx_parser.add_argument(
+        "--input", dest="infile", required=True, help="Входной CSV файл"
+    )
+    csv2xlsx_parser.add_argument("--out", required=True, help="Выходной XLSX файл")
+
+    args = parser.parse_args()
+
+    if args.command == "json2csv":
+        json2csv_command(args)
+    elif args.command == "csv2json":
+        csv2json_command(args)
+    elif args.command == "csv2xlsx":
+        csv2xlsx_command(args)
+    else:
+        parser.print_help()
+
+
+if __name__ == "__main__":
+    main()
+```
+
+![](images/lab06/vvodd2.png "")
+![](images/lab06/vivodd1.png "")
+![](images/lab06/vivodd2.png "")
+![](images/lab06/vivodd3.png "")
+![](images/lab06/vivodd4.png "")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # Лабораторная работа 5
 ## задание A JSON_CSV
 ```python

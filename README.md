@@ -1,3 +1,251 @@
+# Лабораторная работа 8
+## models
+```python
+from dataclasses import dataclass
+from datetime import date, datetime
+
+DATE_FMT = "%Y-%m-%d"
+
+
+@dataclass
+class Student:
+    fio: str
+    birthdate: str
+    group: str
+    gpa: float
+
+    def __post_init__(self):
+        if not self.fio or not isinstance(self.fio, str):
+            raise ValueError("ФИО обязательно и должно быть строкой")
+
+        try:
+            datetime.strptime(self.birthdate, DATE_FMT)
+        except ValueError:
+            raise ValueError(
+                f"Дата рождения обязательна и должна быть в формате: {DATE_FMT}"
+            )
+
+        if not self.group or not isinstance(self.group, str):
+            raise ValueError("Группа обязательна и должна быть строкой")
+
+        if not isinstance(self.gpa, (float, int)):
+            raise ValueError("Средний балл обязателен и должен быть числом")
+
+        if not (0 <= float(self.gpa) <= 5):
+            raise ValueError("Средний балл должен быть 0 <= и <= 5")
+
+        self.gpa = float(self.gpa)
+
+    def age(self) -> int:
+        b = datetime.strptime(self.birthdate, DATE_FMT).date()
+        today = date.today()
+        full_years = today.year - b.year - ((today.month, today.day) < (b.month, b.day))
+        return full_years
+
+    def to_dict(self) -> dict:
+        return {
+            "fio": self.fio,
+            "birthdate": self.birthdate,
+            "group": self.group,
+            "gpa": self.gpa,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "Student":
+        if not isinstance(data, dict):
+            raise ValueError("Данные должны быть dict")
+
+        required = {"fio", "birthdate", "group", "gpa"}
+        missing = required - data.keys()
+        if missing:
+            raise ValueError(f"Лишние данные: {missing}")
+
+        return cls(
+            fio=data["fio"],
+            birthdate=data["birthdate"],
+            group=data["group"],
+            gpa=data["gpa"],
+        )
+
+    def __str__(self):
+        return f"{self.fio} ({self.group}), GPA={self.gpa}, age={self.age()}"
+```
+
+## serialize
+```python
+import json
+from pathlib import Path
+
+from .models import Student
+
+
+def students_to_json(students: list[Student], path: str | Path) -> None:
+    path = Path(path)
+
+    data = [s.to_dict() for s in students]
+
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+
+
+def students_from_json(path: str | Path) -> list[Student]:
+    path = Path(path)
+
+    with open(path, "r", encoding="utf-8") as f:
+        raw = json.load(f)
+
+    if not isinstance(raw, list):
+        raise ValueError("JSON must contain array of students")
+
+    students = []
+    for obj in raw:
+        try:
+            student = Student.from_dict(obj)
+            students.append(student)
+        except Exception as e:
+            raise ValueError(f"invalid student object: {obj!r}, error: {e}") from e
+
+    return students
+```
+# main
+```python
+from pathlib import Path
+
+from src.lab08.models import Student
+from src.lab08.serialize import students_from_json, students_to_json
+
+
+def main():
+    students = [
+        Student(
+            fio="Онищенко Светлана Николаевна",
+            birthdate="2007-11-04",
+            group="BIVT-25-4",
+            gpa=5.00,
+        ),
+        Student(
+            fio="Ткаченко Никита Дмитриевич",
+            birthdate="2009-01-18",
+            group="BIVT-25-4",
+            gpa=5.0,
+        ),
+        Student(
+            fio="Понаревская Наталия Владимировна",
+            birthdate="2007-08-28",
+            group="BIVT-25-4",
+            gpa=5.0,
+        ),
+    ]
+
+    json_path = Path("data/students.json")
+
+    students_to_json(students, json_path)
+    print(f"→ JSON сохранён в {json_path}")
+
+    loaded_students = students_from_json(json_path)
+    print("→ Загружено студентов:", len(loaded_students))
+
+    print("\nСтуденты из JSON")
+    for s in loaded_students:
+        print(s)
+        print()
+
+
+if __name__ == "__main__":
+    main()
+```
+![](images/lab08/1.png "")
+![](images/lab08/2.png "")
+
+
+
+
+# Лабораторная работа 6
+## задание A cli_text
+```python
+import argparse
+import sys
+
+sys.path.append(r'C:\Users\Lucia\PycharmProjects\LabsOnishenko\src')
+
+from lib.text import normalize, tokenize, count_freq,  top_n
+
+def read_text_file(file_path):
+    try:
+        with open(file_path, "r", encoding="utf-8") as f:
+            return f.read()
+    except FileNotFoundError:
+        print(f"Ошибка: Файл {file_path} не найден")
+        sys.exit(1)
+    except Exception as e:
+        print(f"Ошибка при чтении файла: {e}")
+        sys.exit(1)
+
+def cat_command(args):
+    try:
+        with open(args.input, "r", encoding="utf-8") as f:
+            for line_num, line in enumerate(f, 1):
+                if args.n:
+                    print(f"{line_num:6} {line}", end="")
+                else:
+                    print(line, end="")
+    except FileNotFoundError:
+        print(f"Ошибка: Файл {args.input} не найден")
+        sys.exit(1)
+    except Exception as e:
+        print(f"Ошибка при чтении файла: {e}")
+        sys.exit(1)
+
+
+def stats_command(args):
+    text = read_text_file(args.input)
+    normalize_text = normalize(text)
+    tokens = tokenize(normalize_text)
+    frequencies = count_freq(tokens)
+    top_5 = top_n(frequencies, args.top)
+
+    print("Топ-5:")
+
+    for item in top_5:
+        print(f"{item[0]}: {item[1]}")
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="CLI-утилиты для работы с текстом"
+    )
+    subparsers = parser.add_subparsers(dest="command", help="Доступные команды")
+
+    cat_parser = subparsers.add_parser("cat", help="Вывести содержимое файла")
+    cat_parser.add_argument("--input", required=True, help="Путь к входному файлу")
+    cat_parser.add_argument("-n", action="store_true", help="Нумеровать строки")
+
+    stats_parser = subparsers.add_parser("stats", help="Анализ частот слов")
+    stats_parser.add_argument("--input", required=True, help="Путь к текстовому файлу")
+    stats_parser.add_argument("--top", type=int, default=5, help="Количество топ-слов (по умолчанию: 5)")
+
+    args = parser.parse_args()
+
+
+    if args.command == "cat":
+        cat_command(args)
+    elif args.command == "stats":
+        stats_command(args)
+    else:
+        parser.print_help()
+
+
+if __name__ == "__main__":
+    main()
+```
+![](images/lab06/vvod1.png "")
+![](images/lab06/vivod1.png "")
+![](images/lab06/vivod2.png "")
+![](images/lab06/vivod3.png "")
+
+
+
+
 # Лабораторная работа 7
 ## test_json_csv
 ```python

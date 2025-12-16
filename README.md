@@ -1,5 +1,6 @@
 # Лабораторная работа 9
 ## models
+```
 from pathlib import Path
 from src.lab08.models import Student
 import csv
@@ -131,9 +132,10 @@ class Group:
             "groups": groups,
             "top_5_students": top5,
         }
-
+```
 
 # test_models
+```python
 import csv
 
 import pytest
@@ -161,6 +163,9 @@ STUDENTS = [
         "gpa": 5.0,
     },
 ]
+
+
+```
 
 ![](images/lab09/1.png "")
 

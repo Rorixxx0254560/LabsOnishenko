@@ -26,7 +26,7 @@ class SinglyLinkedList:
         if self.tail is None:
             self.tail = new
         self._size += 1
-
+OL9I
     def insert(self, idx: int, value) -> None:
         if not (0 <= idx <= self._size):
             raise IndexError("index out of range")

@@ -1,3 +1,336 @@
+## Лабораторная работа 10
+# test_stack
+```
+import csv
+
+import pytest
+
+from src.lab08.models import Student
+from src.lab09.models import Group
+
+STUDENTS = [
+    {
+        "fio": "Межеровская Анна Сергеевна",
+        "birthdate": "2007-11-04",
+        "group": "BIVT-25-4",
+        "gpa": 0.01,
+    },
+    {
+        "fio": "Кабанова Амалия Сергеевна",
+        "birthdate": "2009-01-18",
+        "group": "BIVT-25-4",
+        "gpa": 5.0,
+    },
+    {
+        "fio": "Муфазалов Эрик Мансурович",
+        "birthdate": "2007-08-28",
+        "group": "BIVT-25-4",
+        "gpa": 5.0,
+    },
+]
+```
+# test_queue
+```python
+import pytest
+
+from src.lab10.structures import Queue
+
+
+def test_queue_initially_empty():
+    q = Queue()
+    assert q.is_empty()
+    assert len(q) == 0
+    assert q.peek() is None
+
+
+def test_queue_enqueue_dequeue_fifo():
+    q = Queue()
+    q.enqueue(1)
+    q.enqueue(2)
+    q.enqueue(3)
+
+    assert len(q) == 3
+    assert q.dequeue() == 1
+    assert q.dequeue() == 2
+    assert q.dequeue() == 3
+    assert q.is_empty()
+
+
+def test_queue_peek_does_not_remove():
+    q = Queue()
+    q.enqueue("x")
+    assert q.peek() == "x"
+    assert len(q) == 1
+
+
+def test_queue_dequeue_empty_raises():
+    q = Queue()
+    with pytest.raises(IndexError):
+        q.dequeue()
+```
+# test_linked_list
+```python
+import pytest
+
+from src.lab10.linked_list import SinglyLinkedList
+
+
+def test_empty_list():
+    lst = SinglyLinkedList()
+    assert len(lst) == 0
+    assert list(lst) == []
+    assert lst.head is None
+    assert lst.tail is None
+
+
+def test_append():
+    lst = SinglyLinkedList()
+    lst.append(1)
+    lst.append(2)
+    lst.append(3)
+
+    assert list(lst) == [1, 2, 3]
+    assert len(lst) == 3
+    assert lst.head.value == 1
+    assert lst.tail.value == 3
+
+
+def test_prepend():
+    lst = SinglyLinkedList()
+    lst.prepend(1)
+    lst.prepend(2)
+    lst.prepend(3)
+
+    assert list(lst) == [3, 2, 1]
+    assert len(lst) == 3
+    assert lst.head.value == 3
+    assert lst.tail.value == 1
+
+
+def test_insert_middle():
+    lst = SinglyLinkedList()
+    lst.append(1)
+    lst.append(3)
+    lst.insert(1, 2)
+
+    assert list(lst) == [1, 2, 3]
+    assert len(lst) == 3
+
+
+def test_insert_at_begin_and_end():
+    lst = SinglyLinkedList()
+    lst.insert(0, "a")
+    lst.insert(1, "c")
+    lst.insert(1, "b")
+
+    assert list(lst) == ["a", "b", "c"]
+
+
+def test_insert_out_of_range():
+    lst = SinglyLinkedList()
+    with pytest.raises(IndexError):
+        lst.insert(1, "x")
+
+
+def test_remove_at_middle():
+    lst = SinglyLinkedList()
+    for i in range(5):
+        lst.append(i)
+
+    lst.remove_at(2)
+    assert list(lst) == [0, 1, 3, 4]
+    assert len(lst) == 4
+
+
+def test_remove_at_head():
+    lst = SinglyLinkedList()
+    lst.append(1)
+    lst.append(2)
+
+    lst.remove_at(0)
+    assert list(lst) == [2]
+    assert lst.head.value == 2
+    assert lst.tail.value == 2
+
+
+def test_remove_at_tail():
+    lst = SinglyLinkedList()
+    lst.append(1)
+    lst.append(2)
+    lst.append(3)
+
+    lst.remove_at(2)
+    assert list(lst) == [1, 2]
+    assert lst.tail.value == 2
+
+
+def test_remove_single_element():
+    lst = SinglyLinkedList()
+    lst.append(42)
+
+    lst.remove_at(0)
+    assert len(lst) == 0
+    assert lst.head is None
+    assert lst.tail is None
+
+
+def test_remove_out_of_range():
+    lst = SinglyLinkedList()
+    with pytest.raises(IndexError):
+        lst.remove_at(0)
+
+
+def test_repr_and_pretty():
+    lst = SinglyLinkedList()
+    lst.append("A")
+    lst.append("B")
+
+    assert repr(lst) == "SinglyLinkedList(['A', 'B'])"
+    assert lst.pretty() == "[A] -> [B] -> None"
+```
+# linked-list
+```python
+class Node:
+    def __init__(self, value, next=None) -> None:
+        self.value = value
+        self.next = next
+
+
+class SinglyLinkedList:
+    def __init__(self) -> None:
+        self.head = None
+        self.tail = None
+        self._size = 0
+
+    def append(self, value) -> None:
+        new = Node(value)
+        if self.head is None:
+            self.head = self.tail = new
+        else:
+            assert self.tail is not None
+            self.tail.next = new
+            self.tail = new
+        self._size += 1
+
+    def prepend(self, value) -> None:
+        new = Node(value, next=self.head)
+        self.head = new
+        if self.tail is None:
+            self.tail = new
+        self._size += 1
+    def insert(self, idx: int, value) -> None:
+        if not (0 <= idx <= self._size):
+            raise IndexError("index out of range")
+
+        if idx == 0:
+            return self.prepend(value)
+
+        if idx == self._size:
+            return self.append(value)
+
+        prev = self.head
+        for _ in range(idx - 1):
+            assert prev is not None
+            prev = prev.next
+
+        new = Node(value, next=prev.next)
+        prev.next = new
+        self._size += 1
+
+    def remove_at(self, idx: int) -> None:
+        if not (0 <= idx < self._size):
+            raise IndexError("index out of range")
+
+        if idx == 0:
+            removed = self.head
+            self.head = removed.next
+            if self._size == 1:
+                self.tail = None
+            self._size -= 1
+            return
+
+        prev = self.head
+        for _ in range(idx - 1):
+            prev = prev.next
+
+        removed = prev.next
+        prev.next = removed.next
+        if removed is self.tail:
+            self.tail = prev
+
+        self._size -= 1
+
+    def __iter__(self):
+        current = self.head
+        while current:
+            yield current.value
+            current = current.next
+
+    def __len__(self) -> int:
+        return self._size
+
+    def __repr__(self) -> str:
+        return f"SinglyLinkedList([{', '.join(repr(v) for v in self)}])"
+
+    def pretty(self) -> str:
+        parts = []
+        current = self.head
+        while current:
+            parts.append(f"[{current.value}]")
+            current = current.next
+        parts.append("None")
+        return " -> ".join(parts)
+```
+# structures
+```python
+from collections import deque
+
+
+class Stack:
+    def __init__(self) -> None:
+        self._data = []
+
+    def push(self, item) -> None:
+        self._data.append(item)
+
+    def pop(self):
+        if not self._data:
+            raise IndexError("pop from empty Stack")
+        return self._data.pop()
+
+    def peek(self):
+        return self._data[-1] if self._data else None
+
+    def is_empty(self) -> bool:
+        return not self._data
+
+    def __len__(self) -> int:
+        return len(self._data)
+
+
+class Queue:
+    def __init__(self) -> None:
+        self._data = deque()
+
+    def enqueue(self, item) -> None:
+        self._data.append(item)
+
+    def dequeue(self):
+        if not self._data:
+            raise IndexError("dequeue from empty Queue")
+        return self._data.popleft()
+
+    def peek(self):
+        return self._data[0] if self._data else None
+
+    def is_empty(self) -> bool:
+        return not self._data
+
+    def __len__(self) -> int:
+        return len(self._data)
+```
+![](images/LAB10/1.png "")
+
 # Лабораторная работа 9
 ## models
 ```
